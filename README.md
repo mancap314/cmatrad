@@ -7,6 +7,5 @@ the C version of [MATRAD](https://github.com/mancap314/matrad) (in Python).
 This implementation comes along with a test suite implemented in
 [test.c](test.c). To build and run the tests:
 ```
-make test.o
-./test.o
+make test
 ```
