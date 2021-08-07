@@ -3,13 +3,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <jansson.h>
 #include "utils.h"
+
 
 uint64_t power(int base, int exp) {
     uint64_t res = base;
     for (int i = 1; i < exp; i++) res *= base;
     return res;
 }
+
 
 void test_get_home_fp() {
     char *filename = "truc";
@@ -18,23 +21,24 @@ void test_get_home_fp() {
     return;
 }
 
+
 void test_get_current_timestamp() {
     uint64_t current_timestamp = get_current_timestamp();
     fprintf(stdout, "TEST: get_current_timestamp(): %li\n", current_timestamp);
     float ct_div = (float)current_timestamp / power(10, 12);
     bool is_milliseconds = (ct_div > 1) && (ct_div < 10);
-    if (is_milliseconds) fprintf(stdout, "INFO: timestamp size is correct\nTEST PASSED\n");
+    if (is_milliseconds) fputs("INFO: timestamp size is correct\nTEST PASSEDi\n", stdout);
     else fprintf(stderr, "ERROR: timestamp is wrong, current_timestamp / 10^13 = %f\nTEST FAILED\n", ct_div);
     return;
 }
 
+
 void test_get_api_key() {
     bool secret = false;
-    char *key;
+    const char *key;
     key = get_api_key(secret);
-    printf("DEBUG: key = %s\n", key);
     if (strcmp(key, "") == 0)
-        fprintf(stderr, "ERROR: failed to retrieve API key\nTEST FAILED\n");
+        fputs("ERROR: failed to retrieve API key\nTEST FAILED\n", stderr);
     else 
         fprintf(stdout, "INFO: API key retrieved: %s\nTEST PASSED\n", key);
 
@@ -43,9 +47,28 @@ void test_get_api_key() {
     secret_key = get_api_key(secret);
     printf("DEBUG: secret_key = %s\n", secret_key);
     if (strcmp(secret_key, "") == 0)
-        fprintf(stderr, "ERROR: failed to retrieve API secret key\nTEST FAILED\n");
+        fputs("ERROR: failed to retrieve API secret key\nTEST FAILEDi\n", stderr) ;
     else 
         fprintf(stdout, "INFO: API secret key retrieved: %s\nTEST PASSED\n", key);
+    return;
+}
+
+
+void test_get_query_string() {
+    // 1. Create a jansson key=>value map
+    json_t *kvm = json_object();
+    json_object_set_new(kvm, "k1", json_string("v1"));
+    json_object_set_new(kvm, "k2", json_string("v2"));
+    json_object_set_new(kvm, "k3", json_string("v3"));
+    // 2. Test get_query_string() on this map
+    char *query_str = get_query_string(kvm);
+    char *expected_query_str = "k1=v1&k2=v2&k3=v3";
+    fprintf(stdout, "INFO: query_str: \"%s\", expected: \"%s\"\n", query_str, expected_query_str);
+    if (strcmp(query_str, expected_query_str) == 0)
+        puts("INFO: Test for get_query_string(): TEST PASSED");
+    else fputs("ERROR: Test for get_query_string(): TEST FAILED\n", stderr);
+    json_decref(0);
+    return;
 }
 
 
@@ -53,6 +76,7 @@ int main() {
     test_get_home_fp();
     test_get_current_timestamp();
     test_get_api_key();
+    test_get_query_string();
 
     return EXIT_SUCCESS;
 }

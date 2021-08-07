@@ -10,7 +10,7 @@
 
 /* Get the path of a file relatively to the home directory */
 char* get_home_fp(char *filename) {
-   char *home = getenv (HOMEENV);
+   char *home = getenv(HOMEENV);
    if (!home) {
         fprintf (stderr, "ERROR: user home environment not found.\n");
         return "";
@@ -70,4 +70,34 @@ const char* get_api_key(bool secret) {
     key = json_string_value(key_node);
     /* don't json_decref(obj), otherwise key is not anymore accessible */
     return key;
+}
+
+
+char *get_query_string(json_t *params) {
+    char *query_str = (char*) malloc(sizeof(char));
+    query_str[0] = '\0';
+    int niter = 0;
+    void *iter;
+    const char *key_str, *value_str;
+    json_t *value;
+
+    iter = json_object_iter(params);
+    while(iter) {
+        key_str = json_object_iter_key(iter);
+        value = json_object_iter_value(iter);
+
+        value_str = json_string_value(value);
+        
+        if(realloc(query_str, sizeof(char) * (strlen(query_str) + strlen(key_str) + strlen(value_str) + 1 + niter)) != NULL)
+        {
+            if (niter > 0) strcat(query_str, "&");
+            strcat(query_str, key_str);
+            strcat(query_str, "=");
+            strcat(query_str, value_str);
+        }
+        
+        if (niter == 0) niter++;
+        iter = json_object_iter_next(params, iter);
+    }
+    return query_str;
 }
