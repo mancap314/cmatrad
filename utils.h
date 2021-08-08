@@ -22,5 +22,7 @@ uint64_t get_current_timestamp();
 const char* get_api_key(bool secret);
 char* get_home_fp(char *filename);
 char *get_query_string(json_t *params);
+char *encryptWithHMAC(const char* key, const unsigned char* data);
+char *get_hashmap_signature(json_t *params, json_t *data, const char *secret_key); 
 
 #endif

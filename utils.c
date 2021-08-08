@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <jansson.h>
 #include <string.h>
+#include <openssl/hmac.h>
 #include "utils.h"
 
 
@@ -85,7 +86,6 @@ char *get_query_string(json_t *params) {
     while(iter) {
         key_str = json_object_iter_key(iter);
         value = json_object_iter_value(iter);
-
         value_str = json_string_value(value);
         
         if(realloc(query_str, sizeof(char) * (strlen(query_str) + strlen(key_str) + strlen(value_str) + 1 + niter)) != NULL)
@@ -95,9 +95,34 @@ char *get_query_string(json_t *params) {
             strcat(query_str, "=");
             strcat(query_str, value_str);
         }
-        
+        else fputs("ERROR: get_query_string(): failed to realloc memory for query_str\n", stderr);
+
         if (niter == 0) niter++;
         iter = json_object_iter_next(params, iter);
     }
     return query_str;
+}
+
+
+char *encryptWithHMAC(const char* key, const unsigned char* data) {
+    unsigned char *result;
+    static char res_hexstring[64];
+    int result_len = 32;
+    char *signature;
+
+    result = HMAC(EVP_sha256(), key, strlen((char *)key), data, strlen((char *)data), NULL, NULL);
+  	for (int i = 0; i < result_len; i++) {
+    	sprintf(&(res_hexstring[i * 2]), "%02x", result[i]);
+  	}
+
+  	return res_hexstring;
+}
+
+char *get_hashmap_signature(json_t *params, json_t *data, const char *secret_key) {
+    // Concatenate `params`and `data` query strings
+    char *query_str = get_query_string(params);
+    char *data_query_str = get_query_string(data);
+    strcat(query_str, data_query_str);
+    char *signature = encryptWithHMAC(secret_key, query_str);
+    return signature;
 }

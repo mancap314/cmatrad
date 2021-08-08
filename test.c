@@ -72,11 +72,30 @@ void test_get_query_string() {
 }
 
 
+void test_get_hashmap_signature() {
+    json_t *params = json_object();
+    json_t *data = json_object();
+    json_object_set_new(params, "pk1", json_string("pv1"));
+    json_object_set_new(data, "dk1", json_string("dv1"));
+    json_object_set_new(data, "dk2", json_string("dv2"));
+   
+    const char *secret_key = get_api_key(true);
+    char *hashmap_signature = get_hashmap_signature(params, data, secret_key);
+    char *expected_hashmap_signature = "a0246cd3ab8d2ba7f4f74d12dd083ebac2ff2be50c329a58be46a74b37a1afb1";
+
+    fprintf(stdout, "INFO: hashmap signature computed:\n%s\nExpected:\n%s\n", hashmap_signature, expected_hashmap_signature);
+    if (strcmp(hashmap_signature, expected_hashmap_signature) == 0)
+        puts("INFO: get_hashmap_signature(): TEST PASSED");
+    else fputs("ERROR: get_hashmap_signature(): TEST FAILEDi\n", stderr);
+    return;
+}
+
 int main() {
     test_get_home_fp();
     test_get_current_timestamp();
     test_get_api_key();
     test_get_query_string();
+    test_get_hashmap_signature();
 
     return EXIT_SUCCESS;
 }

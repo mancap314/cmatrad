@@ -1,5 +1,5 @@
 CC = gcc
-CARGS = -ljansson
+CARGS = -ljansson -lssl -lcrypto
 PREREQUISITES = utils.h utils.c test.c
 
 
